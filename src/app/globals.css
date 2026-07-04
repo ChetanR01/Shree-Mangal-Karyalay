@@ -54,11 +54,24 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Offset anchor jumps so sections don't hide under the fixed navbar */
+section[id] {
+  scroll-margin-top: 76px;
+}
+@media (min-width: 640px) {
+  section[id] {
+    scroll-margin-top: 88px;
+  }
+}
+
 body {
   background-color: var(--color-maroon-900);
   color: var(--color-cream);
   font-family: var(--font-sans);
-  overflow-x: hidden;
+  /* `clip` hides horizontal overflow WITHOUT turning <body> into a scroll
+     container — `hidden` would, which breaks native #hash anchor scrolling
+     (esp. on mobile). Keep the root as the single scroll container. */
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
 }
 

@@ -24,6 +24,31 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Explicit anchor scrolling — reliable on mobile regardless of any
+  // overflow / scroll-container quirks that can swallow native #hash jumps.
+  const goTo = (e: React.MouseEvent, href: string) => {
+    e.preventDefault();
+    const id = href.replace("#", "");
+    setOpen(false);
+    // Defer the scroll to the next frames so the menu-close re-render commits
+    // first — otherwise the re-render cancels the smooth scroll mid-flight.
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        if (id === "top") {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          return;
+        }
+        const el = document.getElementById(id);
+        if (!el) return;
+        // Offset by the collapsed top bar height so the section clears the navbar.
+        const bar = document.querySelector("header nav") as HTMLElement | null;
+        const offset = (bar?.offsetHeight ?? 68) + 12;
+        const top = el.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top, behavior: "smooth" });
+      }),
+    );
+  };
+
   return (
     <motion.header
       initial={{ y: -80, opacity: 0 }}
@@ -37,7 +62,7 @@ export default function Navbar() {
     >
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3 sm:px-8">
         {/* Logo */}
-        <a href="#top" className="group flex items-center gap-3">
+        <a href="#top" onClick={(e) => goTo(e, "#top")} className="group flex items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-full gold-surface font-display text-lg font-bold">
             श्री
           </span>
@@ -57,6 +82,7 @@ export default function Navbar() {
             <li key={l.href}>
               <a
                 href={l.href}
+                onClick={(e) => goTo(e, l.href)}
                 className="relative font-serif text-lg text-cream/80 transition-colors hover:text-gold-300 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-gold-400 after:transition-all after:duration-300 hover:after:w-full"
               >
                 {l.label}
@@ -95,7 +121,7 @@ export default function Navbar() {
               <li key={l.href} className="border-b border-gold-500/15 last:border-0">
                 <a
                   href={l.href}
-                  onClick={() => setOpen(false)}
+                  onClick={(e) => goTo(e, l.href)}
                   className="block py-4 font-serif text-lg text-cream/85"
                 >
                   {l.label}
